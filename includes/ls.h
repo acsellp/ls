@@ -9,7 +9,11 @@
 # include <sys/stat.h>
 # include <unistd.h>
 # include <time.h>
-$ inlude <errno.h>
+# include <pwd.h>
+# include <grp.h>
+# include <stdio.h>
+# include <errno.h>
+# include <sys/xattr.h>
 
 
 #endif

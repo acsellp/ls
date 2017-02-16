@@ -20,12 +20,17 @@ void	file_type(mode_t mode)
 
 int	main(int ac, char **av)
 {
-	struct stat *buff;
-	time_t		tm;
+	struct stat		*buff;
+	struct passwd	*pwd;
+	struct group	*grp;
+	time_t			tm;
+	char			*list;
+	ssize_t			size;
 	
 	buff = (struct stat*)malloc(sizeof(struct stat));
+	ft_printf("\nSTAT()\n");
 	if (stat(av[1], buff) == -1)
-		ft_printf("Error\n");
+		perror("stat");
 	else
 	{
 		ft_printf("device %d\n",buff->st_dev);
@@ -42,10 +47,82 @@ int	main(int ac, char **av)
 		ft_printf("time of last modification %s",ctime(&buff->st_mtime));
 		ft_printf("time of last status charnge %s",ctime(&buff->st_ctime));
 	}
+	ft_printf("\nTIME()\n");
 	time(&tm);
 	ft_printf("\nCURRENT TIME %s\n",ctime(&tm));
+	//perror("time");
+	
+	ft_printf("\nGETPWUID()\n");
+	pwd = getpwuid(buff->st_uid);
+	if (pwd)
+	{
+		ft_printf("\nName : %s", pwd->pw_name);
+		ft_printf("\nPassword : %s", pwd->pw_passwd);
+		ft_printf("\nUID : %d", pwd->pw_uid);
+		ft_printf("\nGID : %d", pwd->pw_gid);
+		ft_printf("\nUser information : %s",pwd->pw_gecos);
+		ft_printf("\nHome directory : %s",pwd->pw_dir);
+		ft_printf("\nShell program : %s\n\n", pwd->pw_shell);
+	}
+	else
+		perror("getpwuid");
+	
+	ft_printf("\nGETGRGID\n");
+	grp = getgrgid(buff->st_gid);
+	if (grp)
+	{
+		ft_printf("\nName : %s", grp->gr_name);
+		ft_printf("\nPassword : %s", grp->gr_passwd);
+		ft_printf("\nGID : %", grp->gr_gid);
+		ft_printf("\nGoup members : %s", grp->gr_mem[0]);
+	}
+	else
+		ft_printf("\ngetgrgid error \n");
+	
+	ft_printf("\nLISTXATTR\n");
+
+	if ((size = listxattr(av[1], NULL, 0)) == -1)
+		perror("listxattr");
+	else if (size == 0)
+		ft_printf("\nno atributes\n\n");
+	else
+	{
+		list = (char*)malloc(sizeof(char) * size);
+		if (listxattr(av[1], list, size) == -1)
+			perror("listxattr");
+		else
+			ft_printf("\nLIST ATTR: %s\n\n",list);
+		free(list);
+	}
+
+
+	
+	
 	free(buff);
 	(void)ac;
 	(void)av;
 	return (1);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
