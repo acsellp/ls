@@ -15,5 +15,14 @@
 # include <errno.h>
 # include <sys/xattr.h>
 
+typedef struct		s_flags
+{
+	unsigned char	R;
+	unsigned char	r;
+	unsigned char	l;
+	unsigned char	a;
+	unsigned char	t;
+}					t_flags;
+
 
 #endif
