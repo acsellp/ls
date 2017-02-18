@@ -1,51 +1,161 @@
 #include "ls.h"
 
-void	file_type(mode_t mode)
+void	print_usage()
 {
-	if (mode == S_IFREG)
-		ft_printf("REGULAR FILE\n");
-	if (mode == S_IFDIR)
-		ft_printf("DIRECTORY\n");
-	if (mode == S_IFCHR)
-		ft_printf("CHARACTER DEVICE\n");
-	if (mode == S_IFBLK)
-		ft_printf("BLOCK DEVICE\n");
-	if (mode == S_IFIFO)
-		ft_printf("FIFO pipe\n");
-	if (mode == S_IFLNK)
-		ft_printf("LINK\n");
-	if (mode == S_IFSOCK)
-		ft_printf("SOCKET\n");
+	ft_printf("Usage : <...>\n");
+	exit(1);
+}
+
+void	print_error(char *error)
+{
+	perror(error);
+	exit(1);
+}
+
+void	check_flags(char **av, int ac, t_flags *flags)
+{
+	int		i;
+	int		x;
+	
+	i = 0;
+	while (++i < ac)
+	{
+		if (av[i][0] == '-')
+		{
+			x = 1;
+			while (av[i][x])
+			{
+				(av[i][x] == 'R') ? flags->R = 1 : \
+				(av[i][x] == 'r') ? flags->r = 1 : \
+				(av[i][x] == 'l') ? flags->l = 1 : \
+				(av[i][x] == 'a') ? flags->a = 1 : \
+				(av[i][x] == 't') ? flags->t = 1 : \
+					print_usage();
+				x++;
+			}
+		}
+		else
+			print_usage();
+	}
+}
+
+void	init_flags(t_flags *flags)
+{
+	flags->R = 0;
+	flags->r = 0;
+	flags->l = 0;
+	flags->t = 0;
+	flags->a = 0;
+}
+
+void	del_path(t_paths **pths)
+{
+	if (!*pths)
+		return ;
+	while (*pths && (*pths)->next)
+		del_path(&(*pths)->next);
+	free((*pths)->p);
+	free(*pths);
+	*pths = NULL;
+}
+
+void	add_path(t_paths **paths, char *dir, char *p)
+{
+	t_paths *pth;
+    t_paths *new;
+    size_t  sz;
+	
+    sz = ft_strlen(dir) + ft_strlen(p) + 2;
+	pth = *paths;
+	if (!pth)
+	{
+		*paths = (t_paths*)malloc(sizeof(t_paths));
+		(*paths)->p = (char*)malloc(sizeof(char) * sz);
+		ft_strcpy((*paths)->p, dir);
+		ft_strcat((*paths)->p, "/");
+		ft_strcat((*paths)->p, p);
+		if (ft_strcmp(p, "..") == 0)
+			(*paths)->back = 1;
+		else
+			(*paths)->back = 0;
+		// -l opt
+		(*paths)->next = NULL;
+		return ;
+	}
+	// -t opt
+	//while (pth->next && pth->prop->mod > mod)
+	//	pth = pth->next;
+	while (pth->next)
+		pth = pth->next;
+	new = (t_paths*)malloc(sizeof(t_paths));
+	new->p = (char*)malloc(sizeof(char) * sz);
+	ft_strcpy(new->p, dir);
+	ft_strcat(new->p, "/");
+	ft_strcat(new->p, p);
+	if (ft_strcmp(p, "..") == 0)
+		new->back = 1;
+	else
+		new->back = 0;
+	// -l opt
+	pth->next = new;
+    new->next = NULL;
+}
+
+void listdir(char *name)
+{
+    DIR				*dir;
+    struct dirent	*dent;
+	t_paths			*paths;
+	t_paths			*tmp;
+
+	paths = NULL;
+  	(!(dir = opendir(name))) ? print_error("opendir") : 0;
+	ft_printf("%s:\n", name);
+	
+	while (1)
+	{
+		if ((dent = readdir(dir)))
+		{
+			// -a opt
+			if (dent->d_name[0] != '?' /*|| flags->a*/)
+			  ft_printf("%s\n", dent->d_name);
+			
+			if (dent->d_type == DT_DIR)
+				add_path(&paths, name, dent->d_name);
+			errno = 0;
+		}
+		else
+		{
+			(errno) ? print_error("readdir") : 0;
+			break ;
+		}
+	}
+	ft_printf("\n");
+	// -r opt
+	// output || reverse output
+	
+	// -R opt
+	
+	tmp = paths;
+    while (tmp)
+    {
+		ft_printf("\n%s",tmp->p);
+		get_stat(tmp->p);
+		get_listxattr(tmp->p);
+		//if (tmp->back == 0)
+			//listdir(tmp->p);
+        tmp = tmp->next;
+    }
+	closedir(dir);
+	del_path(&paths);
+    return ;
 }
 
 int	main(int ac, char **av)
 {
-	struct stat *buff;
-	time_t		tm;
-	
-	buff = (struct stat*)malloc(sizeof(struct stat));
-	if (stat(av[1], buff) == -1)
-		ft_printf("Error\n");
-	else
-	{
-		ft_printf("device %d\n",buff->st_dev);
-		ft_printf("inode number %d\n",buff->st_ino);
-		file_type(buff->st_mode & S_IFMT);
-		ft_printf("number of links %d\n",buff->st_nlink);
-		ft_printf("user ID %d\n",buff->st_uid);
-		ft_printf("group ID %d\n",buff->st_gid);
-		ft_printf("device ID %d\n",buff->st_rdev);
-		ft_printf("total size %d\n",buff->st_size);
-		ft_printf("block size %d\n",buff->st_blksize);
-		ft_printf("number of blocks %d\n",buff->st_blocks);
-		ft_printf("time of last acces %s",ctime(&buff->st_atime));
-		ft_printf("time of last modification %s",ctime(&buff->st_mtime));
-		ft_printf("time of last status charnge %s",ctime(&buff->st_ctime));
-	}
-	time(&tm);
-	ft_printf("\nCURRENT TIME %s\n",ctime(&tm));
-	free(buff);
-	(void)ac;
-	(void)av;
+	t_flags			flags;
+	init_flags(&flags);
+	check_flags(av, ac, &flags);
+	listdir(".");
 	return (1);
 }

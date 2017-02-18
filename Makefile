@@ -1,12 +1,15 @@
 NAME = ft_ls
 
-SRCS = srcs/main.c
+SRCS = srcs/main.c \
+        srcs/get_info.c
 
 INCL = -I./includes/
 
 FLAGS = -Wall -Werror -Wextra
 
-all:
+all: $(NAME)
+
+$(NAME):
 		gcc $(SRCS) $(FLAGS) $(INCL) -L./srcs/libft -lft -L./srcs/printf -lftprintf -o $(NAME)
 
 printf:
@@ -14,6 +17,8 @@ printf:
 
 libft:
 		make -C srcs/libft fclean && make -C srcs/libft && make clean -C srcs/libft
+        
+clean:
 		
 fclean:
 		rm -rf $(NAME)
