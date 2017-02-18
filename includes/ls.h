@@ -26,31 +26,36 @@ typedef	struct		s_props
 {
 	long long		size;
 	long long		nblocks;
-	long			block_sz;
-	time_t			mod;
+	long			blksize;
+	time_t			mtime;
 	long			gid;
 	long			uid;
-	long			ino;
 	int				nlink;
+	char			*perm;
 }					t_props;
-typedef	struct		s_paths
+typedef	struct		s_path
 {
-	unsigned char	back;
-	char			*p;
-	t_flags			flags;
+	unsigned char	next_dir;
+	char			*dir;
+	size_t			offs;
 	t_props			props;
-	struct s_paths	*next;
-}					t_paths;
-
+	struct s_path	*next;
+}					t_path;
+typedef struct		s_ls
+{
+	t_flags			*flags;
+	t_path			*path;
+}					t_ls;
 
 /*
 **	get_info.c
 */
-void	get_stat(char *dir);
+void	get_stat(char *dir, t_path **pth, t_flags **flags);
 void	get_time();
-void	get_pwuid(uid_t uid);
-void	get_grgid(gid_t gid);
+void	get_pwuid(uid_t uid, t_path **pth);
+void	get_grgid(gid_t gid, t_path **pth);
 void	get_listxattr(char *dir);
+void	get_perm(t_path **pth, struct stat *stat);
 /*
 **	main.c
 */
@@ -59,7 +64,7 @@ void	check_flags(char **av, int ac, t_flags *flags);
 void	print_error(char *error);
 void	print_usage();
 void	init_flags(t_flags *flags);
-void	del_path(t_paths **pths);
-void	add_path(t_paths **paths, char *dir, char *p);
+void	del_path(t_path **pths);
+//void	add_path(t_path **paths, char *dir, struct dirent *dent, t_flags *f);
 
 #endif
