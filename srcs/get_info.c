@@ -10,6 +10,7 @@ void	get_stat(char *dir, t_path **pth, t_flags **flags)
 		perror("stat");
 	else
 	{
+		if ((*flags)->)
 		//ft_printf("		device %d\n",buff->st_dev);
 		//ft_printf("		inode number %ld\n",(long)buff->st_ino);
 		//file_type(buff->st_mode & S_IFMT);
@@ -28,11 +29,10 @@ void	get_stat(char *dir, t_path **pth, t_flags **flags)
 		(*pth)->props.blksize = buff->st_blksize;
 		//ft_printf("		number of blocks %lld\n",(long long)buff->st_blocks);
 		(*pth)->props.nblocks = buff->st_blocks;
-		//ft_printf("		time of last acces %lld - %s",(long long) buff->st_atime,ctime(&buff->st_atime));
-		//ft_printf("		time of last modification %s",ctime(&buff->st_mtime));
-		(*pth)->props.mtime = buff->st_mtime;
-		//ft_printf("		time of last status charnge %s",ctime(&buff->st_ctime));
 		get_perm(pth, buff);
+		
+		(*pth)->props.mtime = buff->st_mtime;
+		
 	}
 	free(buff);
 }

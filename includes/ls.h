@@ -22,6 +22,7 @@ typedef struct		s_flags
 	unsigned char	a;
 	unsigned char	t;
 }					t_flags;
+<<<<<<< HEAD
 typedef	struct		s_props
 {
 	long long		size;
@@ -59,6 +60,8 @@ void	get_perm(t_path **pth, struct stat *stat);
 /*
 **	main.c
 */
+=======
+>>>>>>> ee12ab0ccf94a33a10fa657d8d1332bed5421ee8
 
 void	check_flags(char **av, int ac, t_flags *flags);
 void	print_error(char *error);
