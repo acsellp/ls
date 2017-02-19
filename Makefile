@@ -3,6 +3,7 @@ NAME = ft_ls
 SRCS = srcs/main.c \
         srcs/get_info.c
 
+
 INCL = -I./includes/
 
 FLAGS = -Wall -Werror -Wextra

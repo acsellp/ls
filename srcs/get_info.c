@@ -5,89 +5,56 @@ void	get_stat(char *dir, t_path **pth, t_flags **flags)
 	struct stat *buff;
 
 	buff = (struct stat*)malloc(sizeof(struct stat));
-	//ft_printf("\nSTAT()\n");
 	if (stat(dir, buff) == -1)
 		perror("stat");
 	else
 	{
-		if ((*flags)->)
-		//ft_printf("		device %d\n",buff->st_dev);
-		//ft_printf("		inode number %ld\n",(long)buff->st_ino);
-		//file_type(buff->st_mode & S_IFMT);
-		//ft_printf("		number of links %d\n",buff->st_nlink);
-		(*pth)->props.nlink = buff->st_nlink;
-		//ft_printf("		user ID %ld\n",(long)buff->st_uid);
-//		get_pwuid(buff->st_uid, pth);
-		(*pth)->props.uid = buff->st_uid;
-		//ft_printf("		group ID %ld\n",(long)buff->st_gid);
-//		get_grgid(buff->st_gid, pth);
-		(*pth)->props.gid = buff->st_gid;
-		//ft_printf("		device ID %d\n",buff->st_rdev);
-		//ft_printf("		total size %lld\n",(long long)buff->st_size);
-		(*pth)->props.size = buff->st_size;
-		//ft_printf("		block size %ld\n",(long)buff->st_blksize);
-		(*pth)->props.blksize = buff->st_blksize;
-		//ft_printf("		number of blocks %lld\n",(long long)buff->st_blocks);
-		(*pth)->props.nblocks = buff->st_blocks;
-		get_perm(pth, buff);
-		
+		if ((*flags)->l) // -l opt
+		{
+			(*pth)->props.nlink = buff->st_nlink;
+	//		get_pwuid(buff->st_uid, pth);
+			(*pth)->props.uid = buff->st_uid;
+	//		get_grgid(buff->st_gid, pth);
+			(*pth)->props.gid = buff->st_gid;
+			(*pth)->props.size = buff->st_size;
+			(*pth)->props.blksize = buff->st_blksize;
+			(*pth)->props.nblocks = buff->st_blocks;
+			get_perm(pth, buff);
+		}
 		(*pth)->props.mtime = buff->st_mtime;
-		
+		ft_printf("\n  %s   %lld\n",dir,buff->st_mtime);
 	}
 	free(buff);
 }
 
-void	get_time()
+char	*get_time(time_t *tm)
 {
-	time_t	tm;
-
-	//ft_printf("\nTIME()\n");
-	time(&tm);
-	//ft_printf("\nCURRENT TIME %s\n",ctime(&tm));
+	time(tm);
+	return (ctime(tm));
 }
 
-void	get_pwuid(uid_t uid, t_path **pth)
+char	*get_pwuid(uid_t uid)
 {
 	struct passwd	*pwd;
 
-	//ft_printf("\nGETPWUID()\n");
 	pwd = getpwuid(uid);
 	if (pwd)
-	{
-		//ft_printf("\n			Name : %s", pwd->pw_name);
-		
-		//ft_printf("\n			Password : %s", pwd->pw_passwd);
-		//ft_printf("\n			UID : %d", pwd->pw_uid);
-		//ft_printf("\n			GID : %d", pwd->pw_gid);
-		//ft_printf("\n			User information : %s",pwd->pw_gecos);
-		//ft_printf("\n			Home directory : %s",pwd->pw_dir);
-		//ft_printf("\n			Shell program : %s\n\n", pwd->pw_shell);
-	}
+		return (pwd->pw_name);
 	else
 		perror("getpwuid");
-	(void)pth;
+	return (NULL);
 }
 
-void	get_grgid(gid_t gid, t_path **pth)
+char	*get_grgid(gid_t gid)
 {
 	struct group	*grp;
 
-	//ft_printf("\nGETGRGID\n");
 	grp = getgrgid(gid);
 	if (grp)
-	{
-		//ft_printf("\n			Name : %s", grp->gr_name);
-		
-		//ft_printf("\n			Password : %s", grp->gr_passwd);
-		//ft_printf("\n			GID : %", grp->gr_gid);
-		//ft_printf("\n		Goup members : %s", grp->gr_mem[0]);
-	}
+		return (grp->gr_name);
 	else
-	{
 		perror("getgrgid");
-		ft_printf("\ngetgrgid error \n");
-	}
-	(void)pth;
+	return (NULL);
 }
 
 void	get_listxattr(char *dir)
@@ -128,5 +95,46 @@ void	get_perm(t_path **pth, struct stat *stat)
 	(*pth)->props.perm[i++] = ((stat->st_mode & S_IWOTH) ? 'w' : '-');
 	(*pth)->props.perm[i++] = ((stat->st_mode & S_IXOTH) ? 'x' : '-');
 	(*pth)->props.perm[i] = '\0';
-	//ft_printf("\n		[%s]\n",(*pth)->props.perm);
+}
+
+void	alpha_sort(t_path **head, t_path **new)
+{
+	t_path *pth;
+	t_path *prev;
+	
+	pth = *head;
+	prev = pth;
+	while (pth && ft_strcmp(pth->dir + pth->offs, (*new)->dir + (*new)->offs) <= 0)
+	{
+		prev = pth;
+		pth = pth->next;
+	}
+	if (pth == *head)
+	{
+		(*new)->next = *head;
+		*head = *new;
+	}
+	else
+	{
+		(*new)->next = pth;
+		prev->next = *new;
+	}
+}
+
+void	time_sort(t_path **head, t_path **new)
+{
+	t_path *pth;
+	t_path *prev;
+	
+	pth = *head;
+	prev = pth;
+	while (pth && pth->props.mtime > (*new)->props.mtime)
+	{
+		prev = pth;
+		pth = pth->next;
+	}
+	if (pth == *head)
+		alpha_sort(head, new);
+	else
+		alpha_sort(&prev->next, new);
 }

@@ -22,7 +22,6 @@ typedef struct		s_flags
 	unsigned char	a;
 	unsigned char	t;
 }					t_flags;
-<<<<<<< HEAD
 typedef	struct		s_props
 {
 	long long		size;
@@ -47,27 +46,26 @@ typedef struct		s_ls
 	t_flags			*flags;
 	t_path			*path;
 }					t_ls;
-
 /*
 **	get_info.c
 */
 void	get_stat(char *dir, t_path **pth, t_flags **flags);
-void	get_time();
-void	get_pwuid(uid_t uid, t_path **pth);
-void	get_grgid(gid_t gid, t_path **pth);
+char	*get_time(time_t *tm);
+char	*get_pwuid(uid_t uid);
+char	*get_grgid(gid_t gid);
 void	get_listxattr(char *dir);
 void	get_perm(t_path **pth, struct stat *stat);
 /*
 **	main.c
 */
-=======
->>>>>>> ee12ab0ccf94a33a10fa657d8d1332bed5421ee8
-
 void	check_flags(char **av, int ac, t_flags *flags);
 void	print_error(char *error);
 void	print_usage();
 void	init_flags(t_flags *flags);
 void	del_path(t_path **pths);
 //void	add_path(t_path **paths, char *dir, struct dirent *dent, t_flags *f);
+
+void	alpha_sort(t_path **head, t_path **new);
+void	time_sort(t_path **head, t_path **new);
 
 #endif
