@@ -22,15 +22,20 @@ void	get_stat(char *dir, t_path **pth, t_flags **flags)
 			get_perm(pth, buff);
 		}
 		(*pth)->props.mtime = buff->st_mtime;
-		ft_printf("\n  %s   %lld\n",dir,buff->st_mtime);
+		//ft_printf("\n  %s   %lld\n",dir,buff->st_mtime);
 	}
 	free(buff);
 }
 
 char	*get_time(time_t *tm)
 {
-	time(tm);
-	return (ctime(tm));
+	//time(tm);
+	char	*ret;
+	
+	ret = (char*)malloc(sizeof(char) * 50);
+	ret[0]= '\0';
+	ft_strncat(ret, ctime(tm), 16);
+	return (ret);
 }
 
 char	*get_pwuid(uid_t uid)
@@ -121,11 +126,36 @@ void	alpha_sort(t_path **head, t_path **new)
 	}
 }
 
-void	time_sort(t_path **head, t_path **new)
+void	alpha_sort_rev(t_path **head, t_path **new)
 {
 	t_path *pth;
 	t_path *prev;
 	
+	pth = *head;
+	prev = pth;
+	while (pth && ft_strcmp(pth->dir + pth->offs, (*new)->dir + (*new)->offs) \
+		   >= 0 && pth->offs > (*new)->offs)
+	{
+		prev = pth;
+		pth = pth->next;
+	}
+	if (pth == *head)
+	{
+		(*new)->next = *head;
+		*head = *new;
+	}
+	else
+	{
+		(*new)->next = pth;
+		prev->next = *new;
+	}
+}
+
+void	time_sort(t_path **head, t_path **new)
+{
+	t_path *pth;
+	t_path *prev;
+
 	pth = *head;
 	prev = pth;
 	while (pth && pth->props.mtime > (*new)->props.mtime)
@@ -133,8 +163,50 @@ void	time_sort(t_path **head, t_path **new)
 		prev = pth;
 		pth = pth->next;
 	}
+	while (pth && ft_strcmp(pth->dir + pth->offs, (*new)->dir + (*new)->offs) \
+		   <= 0 && pth->props.mtime == (*new)->props.mtime)
+	{
+		prev = pth;
+		pth = pth->next;
+	}
 	if (pth == *head)
-		alpha_sort(head, new);
+	{
+		(*new)->next = *head;
+		*head = *new;
+	}
 	else
-		alpha_sort(&prev->next, new);
+	{
+		(*new)->next = pth;
+		prev->next = *new;
+	}
+}
+
+void	time_sort_rev(t_path **head, t_path **new)
+{
+	t_path *pth;
+	t_path *prev;
+
+	pth = *head;
+	prev = pth;
+	while (pth && pth->props.mtime < (*new)->props.mtime)
+	{
+		prev = pth;
+		pth = pth->next;
+	}
+	while (pth && ft_strcmp(pth->dir + pth->offs, (*new)->dir + (*new)->offs) \
+		   >= 0 && pth->props.mtime == (*new)->props.mtime)
+	{
+		prev = pth;
+		pth = pth->next;
+	}
+	if (pth == *head)
+	{
+		(*new)->next = *head;
+		*head = *new;
+	}
+	else
+	{
+		(*new)->next = pth;
+		prev->next = *new;
+	}
 }

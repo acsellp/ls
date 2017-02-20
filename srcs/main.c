@@ -34,6 +34,8 @@ void	check_flags(char **av, int ac, t_flags *flags)
 				x++;
 			}
 		}
+		else if (av[i][0] == '/' || av[i][0] == '.')
+			flags->dir = i;
 		else
 			print_usage();
 	}
@@ -46,16 +48,27 @@ void	init_flags(t_flags *flags)
 	flags->l = 0;
 	flags->t = 0;
 	flags->a = 0;
+	flags->dir = 0;
 }
 
-void	print_path(t_ls *ls)
+void	print_path(t_path *pth)
 {
 	t_path *path;
-	
-	path = ls->path;
+	char	*tm;
+
+	path = pth;
 	while (path)
 	{
-		ft_printf("%s - %lld\n",path->dir + path->offs, (long long)path->props.mtime);
+
+		ft_printf("%s ", path->props.perm);
+		ft_printf("% 2d", path->props.nlink);
+		ft_printf(" %s ", get_pwuid(path->props.uid));
+		ft_printf(" %s ", get_grgid(path->props.gid));
+		ft_printf(" % 5d", path->props.size);
+		tm = get_time(&path->props.mtime);
+		ft_printf(" %s ", tm + 4);
+		free(tm);
+		ft_printf("%s\n", path->dir + path->offs);
 		path = path->next;
 	}
 }
@@ -117,10 +130,12 @@ void	add_path(t_ls *ls, char *dir, struct dirent *dent)
 	pth = ls->path;
 	new = new_node(dent, dir, ls->flags);
 	get_stat(new->dir, &new, &ls->flags);
-	if (ls->flags->t) // time sorting
-		time_sort(&ls->path, &new);
-	else // alphabethical sorting
-		alpha_sort(&ls->path, &new);
+	if (!ls->flags->r)
+		(ls->flags->t) ? time_sort(&ls->path, &new) : \
+			alpha_sort(&ls->path, &new);
+	else
+		(ls->flags->t) ? time_sort_rev(&ls->path, &new) : \
+			alpha_sort_rev(&ls->path, &new);
 }
 
 void list_dir(char *name, t_ls *ls)
@@ -145,27 +160,19 @@ void list_dir(char *name, t_ls *ls)
 		}
 	}
 	closedir(dir);
-
-	// -r opt
-	// output || reverse output
-	
-	ft_printf("%s:\n\n", name);
-	print_path(ls);
-	
+	if (ls->flags->R)
+		ft_printf("\n%s:\n", name);
+	print_path(ls->path);
 	if (ls->flags->R)// -R opt
 	{
 		tmp = ls->path;
-		
 		while (tmp)
 		{
-			//ft_printf("%s\n",tmp->dir + tmp->offs);
-			//get_stat(tmp->p, tmp);
 			if (tmp->next_dir)
 				list_dir(tmp->dir, ls);
 			tmp = tmp->next;
 		}
 	}
-	
 	del_path(&ls->path);
     return ;
 }
@@ -178,7 +185,10 @@ int	main(int ac, char **av)
 	ls->flags = (t_flags*)malloc(sizeof(t_flags));
 	init_flags(ls->flags);
 	check_flags(av, ac, ls->flags);
-	list_dir(".", ls);
+	if (ls->flags->dir)
+		list_dir(av[ls->flags->dir], ls);
+	else
+		list_dir(".", ls);
 	free(ls->flags);
 	free(ls);
 	return (1);

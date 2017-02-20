@@ -21,6 +21,7 @@ typedef struct		s_flags
 	unsigned char	l;
 	unsigned char	a;
 	unsigned char	t;
+	unsigned char	dir;
 }					t_flags;
 typedef	struct		s_props
 {
@@ -67,5 +68,7 @@ void	del_path(t_path **pths);
 
 void	alpha_sort(t_path **head, t_path **new);
 void	time_sort(t_path **head, t_path **new);
+void	alpha_sort_rev(t_path **head, t_path **new);
+void	time_sort_rev(t_path **head, t_path **new);
 
 #endif
